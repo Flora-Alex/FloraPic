@@ -3,6 +3,8 @@ server:
   servlet:
     context-path: /api
 spring:
+  profiles:
+    active: local
   application:
     name: flora-picture-backend
     #数据库配置
@@ -34,4 +36,10 @@ knife4j:
         api-rule: package
         api-rule-resource: 
           - com.flora.florapicturebackend.controller
-        
+# cos:
+#   client:
+#     host:
+#     secretId:
+#     secretKey:
+#     region:
+#     bucket:
