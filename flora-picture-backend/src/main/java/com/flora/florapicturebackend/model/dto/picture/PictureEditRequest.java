@@ -6,7 +6,8 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class PictureUploadRequest implements Serializable{
+
+public class PictureEditRequest implements Serializable {
     private Long id;
 
     private String name;

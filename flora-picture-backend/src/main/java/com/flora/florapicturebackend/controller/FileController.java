@@ -52,7 +52,7 @@ public class FileController {
             file = File.createTempFile(filepath, null);            
             cosManager.putObject(filepath, file);
             return ResultUtils.success(filepath);
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("上传文件失败, filepath: {}", filepath, e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
         }finally{
