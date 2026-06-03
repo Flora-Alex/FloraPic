@@ -1,22 +1,36 @@
 package com.flora.florapicturebackend.model.dto.picture;
 
-import java.io.Serializable;
-import java.util.List;
-
 import lombok.Data;
 
+import java.io.Serializable;
+
+/**
+ * 图片上传请求
+ *
+ * @author 程序员鱼皮 <a href="https://www.codefather.cn">编程导航原创项目</a>
+ */
 @Data
-public class PictureUploadRequest implements Serializable{
+public class PictureUploadRequest implements Serializable {
+
+    /**
+     * 图片 id（用于修改）
+     */
     private Long id;
 
-    private String name;
+    /**
+     * 文件地址
+     */
+    private String fileUrl;
 
-    private String introduction;
+    /**
+     * 图片名称
+     */
+    private String picName;
 
-    private String categery;
-
-    private List<String> tags;
+    /**
+     * 空间 id
+     */
+    private Long spaceId;
 
     private static final long serialVersionUID = 1L;
-
 }

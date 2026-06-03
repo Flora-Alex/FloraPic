@@ -3,10 +3,14 @@ package com.flora.florapicturebackend.model.enums;
 import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;
 
+/**
+ * 用户角色枚举
+ */
 @Getter
 public enum UserRoleEnum {
 
     USER("用户", "user"),
+    VIP("会员", "vip"),
     ADMIN("管理员", "admin");
 
     private final String text;
@@ -18,12 +22,18 @@ public enum UserRoleEnum {
         this.value = value;
     }
 
+    /**
+     * 根据 value 获取枚举
+     *
+     * @param value 枚举值的 value
+     * @return 枚举值
+     */
     public static UserRoleEnum getEnumByValue(String value) {
-        if(ObjUtil.isEmpty(value)) {
+        if (ObjUtil.isEmpty(value)) {
             return null;
         }
-        for(UserRoleEnum userRoleEnum : UserRoleEnum.values()) {
-            if(userRoleEnum.getValue().equals(value)) {
+        for (UserRoleEnum userRoleEnum : UserRoleEnum.values()) {
+            if (userRoleEnum.value.equals(value)) {
                 return userRoleEnum;
             }
         }

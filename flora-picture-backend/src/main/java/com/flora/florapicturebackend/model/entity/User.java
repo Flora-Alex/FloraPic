@@ -52,19 +52,16 @@ public class User implements Serializable {
     /**
      * 会员过期时间
      */
-    @TableField(exist = false)
     private Date vipExpireTime;
 
     /**
      * 会员兑换码
      */
-    @TableField(exist = false)
     private String vipCode;
 
     /**
      * 会员编号
      */
-    @TableField(exist = false)
     private Long vipNumber;
 
     /**

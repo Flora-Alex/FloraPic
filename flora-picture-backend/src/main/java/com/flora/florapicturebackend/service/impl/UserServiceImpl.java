@@ -42,6 +42,11 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+/**
+ * @author 李鱼皮
+ * @description 针对表【user(用户)】的数据库操作Service实现
+ * @createDate 2024-12-09 20:03:03
+ */
 @Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
@@ -72,7 +77,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         // 2. 检查用户账号是否和数据库中已有的重复
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("userAccount", userAccount); 
+        queryWrapper.eq("userAccount", userAccount);
         long count = this.baseMapper.selectCount(queryWrapper);
         if (count > 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
@@ -83,7 +88,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = new User();
         user.setUserAccount(userAccount);
         user.setUserPassword(encryptPassword);
-        user.setUserName("新用户");
+        user.setUserName("无名");
         user.setUserRole(UserRoleEnum.USER.getValue());
         boolean saveResult = this.save(user);
         if (!saveResult) {
@@ -136,12 +141,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         final String SALT = "flora";
         return DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
     }
-    /**
-     * 获取登录用户
-     *
-     * @param request
-     * @return 登录用户信息
-     */
+
     @Override
     public User getLoginUser(HttpServletRequest request) {
         // 判断是否已经登录

@@ -1,8 +1,8 @@
 package com.flora.florapicturebackend.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.http.HttpUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.flora.florapicturebackend.annotation.AuthCheck;
 import com.flora.florapicturebackend.common.BaseResponse;
@@ -12,41 +12,28 @@ import com.flora.florapicturebackend.constant.UserConstant;
 import com.flora.florapicturebackend.exception.BusinessException;
 import com.flora.florapicturebackend.exception.ErrorCode;
 import com.flora.florapicturebackend.exception.ThrowUtils;
-import com.flora.florapicturebackend.model.dto.user.UserAddRequest;
-import com.flora.florapicturebackend.model.dto.user.UserLoginRequest;
-import com.flora.florapicturebackend.model.dto.user.UserQueryRequest;
-import com.flora.florapicturebackend.model.dto.user.UserRegisterRequest;
-import com.flora.florapicturebackend.model.dto.user.UserUpdateRequest;
+import com.flora.florapicturebackend.model.dto.user.*;
 import com.flora.florapicturebackend.model.entity.User;
 import com.flora.florapicturebackend.model.vo.LoginUserVO;
 import com.flora.florapicturebackend.model.vo.UserVO;
 import com.flora.florapicturebackend.service.UserService;
-
-import cn.hutool.core.bean.BeanUtil;
-
-import java.util.List;
+import org.springframework.beans.BeanUtils;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
-
+import java.nio.file.Files;
+import java.util.List;
 
 @RestController
 @RequestMapping("/user")
 public class UserController {
+
     @Resource
     private UserService userService;
 
     /**
      * 用户注册
-     * @param userRegisterRequest
-     * @return
      */
     @PostMapping("/register")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
@@ -54,15 +41,12 @@ public class UserController {
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
-        Long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        long result = userService.userRegister(userAccount, userPassword, checkPassword);
         return ResultUtils.success(result);
     }
 
     /**
      * 用户登录
-     * @param userLoginRequest
-     * @param request
-     * @return
      */
     @PostMapping("/login")
     public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
@@ -74,9 +58,7 @@ public class UserController {
     }
 
     /**
-     * 获取当前登录用户信息
-     * @param request
-     * @return
+     * 获取当前登录用户
      */
     @GetMapping("/get/login")
     public BaseResponse<LoginUserVO> getLoginUser(HttpServletRequest request) {
@@ -86,20 +68,16 @@ public class UserController {
 
     /**
      * 用户注销
-     * @param request
-     * @return
      */
     @PostMapping("/logout")
     public BaseResponse<Boolean> userLogout(HttpServletRequest request) {
         ThrowUtils.throwIf(request == null, ErrorCode.PARAMS_ERROR);
-        userService.userLogout(request);
-        return ResultUtils.success(true);
+        boolean result = userService.userLogout(request);
+        return ResultUtils.success(result);
     }
 
     /**
-     * 用户创建
-     * @param userAddRequest
-     * @return
+     * 创建用户
      */
     @PostMapping("/add")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -107,11 +85,11 @@ public class UserController {
         ThrowUtils.throwIf(userAddRequest == null, ErrorCode.PARAMS_ERROR);
         User user = new User();
         BeanUtil.copyProperties(userAddRequest, user);
-        //默认密码
-        final String DEFAULT_PAASWORD = "12345678";
-        String encryptPassword = userService.getEncryptPassword(DEFAULT_PAASWORD);
+        // 默认密码
+        final String DEFAULT_PASSWORD = "12345678";
+        String encryptPassword = userService.getEncryptPassword(DEFAULT_PASSWORD);
         user.setUserPassword(encryptPassword);
-        //插入数据库
+        // 插入数据库
         boolean result = userService.save(user);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(user.getId());
@@ -134,10 +112,8 @@ public class UserController {
      */
     @GetMapping("/get/vo")
     public BaseResponse<UserVO> getUserVOById(long id) {
-        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
         BaseResponse<User> response = getUserById(id);
         User user = response.getData();
-        ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
         return ResultUtils.success(userService.getUserVO(user));
     }
 
@@ -171,21 +147,36 @@ public class UserController {
     }
 
     /**
-     * 分页查询
-     * 
+     * 分页获取用户封装列表（仅管理员）
+     *
+     * @param userQueryRequest 查询请求参数
      */
     @PostMapping("/list/page/vo")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Page<UserVO>> listUserVoByPage(@RequestBody UserQueryRequest userQueryRequest) {
+    public BaseResponse<Page<UserVO>> listUserVOByPage(@RequestBody UserQueryRequest userQueryRequest) {
         ThrowUtils.throwIf(userQueryRequest == null, ErrorCode.PARAMS_ERROR);
         long current = userQueryRequest.getCurrent();
         long pageSize = userQueryRequest.getPageSize();
-        Page<User> userPage = userService.page(new Page<>(current, pageSize), 
-        userService.getQueryWrapper(userQueryRequest));
+        Page<User> userPage = userService.page(new Page<>(current, pageSize),
+                userService.getQueryWrapper(userQueryRequest));
         Page<UserVO> userVOPage = new Page<>(current, pageSize, userPage.getTotal());
         List<UserVO> userVOList = userService.getUserVOList(userPage.getRecords());
         userVOPage.setRecords(userVOList);
         return ResultUtils.success(userVOPage);
+    }
+
+    /**
+     * 兑换会员
+     */
+    @PostMapping("/exchange/vip")
+    public BaseResponse<Boolean> exchangeVip(@RequestBody VipExchangeRequest vipExchangeRequest,
+                                             HttpServletRequest httpServletRequest) {
+        ThrowUtils.throwIf(vipExchangeRequest == null, ErrorCode.PARAMS_ERROR);
+        String vipCode = vipExchangeRequest.getVipCode();
+        User loginUser = userService.getLoginUser(httpServletRequest);
+        // 调用 service 层的方法进行会员兑换
+        boolean result = userService.exchangeVip(loginUser, vipCode);
+        return ResultUtils.success(result);
     }
 
 }

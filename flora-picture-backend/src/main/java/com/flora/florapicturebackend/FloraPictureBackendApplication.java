@@ -1,18 +1,20 @@
 package com.flora.florapicturebackend;
 
+import org.apache.shardingsphere.spring.boot.ShardingSphereAutoConfiguration;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.scheduling.annotation.EnableAsync;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {ShardingSphereAutoConfiguration.class})
+@EnableAsync
 @MapperScan("com.flora.florapicturebackend.mapper")
 @EnableAspectJAutoProxy(exposeProxy = true)
-
 public class FloraPictureBackendApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(FloraPictureBackendApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(FloraPictureBackendApplication.class, args);
+    }
 
 }
